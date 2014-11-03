@@ -61,7 +61,7 @@ section:last-child {
 }
 
 #body-mobile-html iframe {
-    border: 0;
+    border: 1px solid black;
     height: 560px;
     width: 320px;
 }
