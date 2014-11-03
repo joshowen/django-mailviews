@@ -6,15 +6,30 @@
 
     <div class="nav-collapse collapse">
         <ul class="nav">
+            
             {% block navigation.items %}
                 {% if html %}
                     <li><a href="#html">HTML</a></li>
                 {% endif %}
                 <li><a href="#body-plain">Text</a></li>
                 <li><a href="#raw">Raw</a></li>
+                <li><a href="#" onclick="send_test();">Send Test</a></li>
             {% endblock %}
         </ul>
     </div>
+    
+    <script type="text/javascript">
+    send_test = function(){
+        var real_url = window.location.href.replace(window.location.hash, '').replace('#', '');
+        var target = real_url+ "send_test/"
+        console.log(target)
+        $.ajax({url:target, 
+                type: "GET",
+                success:function(result){
+                    alert("Sent test message")
+                }});
+    };
+    </script>
 
 {% endblock %}
 

@@ -1,24 +1,26 @@
-import logging
-import os
 from base64 import b64encode
 from collections import namedtuple
 from email.header import decode_header
+import logging
+from mailviews.helpers import should_use_staticfiles
+from mailviews.utils import split_docstring, unimplemented
+import os
+import pprint
+
+from django.core.urlresolvers import reverse
+from django.http import Http404
+from django.http.response import HttpResponse
+from django.shortcuts import render
+from django.utils.datastructures import SortedDict
+from django.utils.importlib import import_module
+from django.utils.module_loading import module_has_submodule
+
 
 try:
     from django.conf.urls import patterns, include, url
 except ImportError:
     # Django <1.4 compat
     from django.conf.urls.defaults import patterns, include, url
-
-from django.core.urlresolvers import reverse
-from django.http import Http404
-from django.shortcuts import render
-from django.utils.datastructures import SortedDict
-from django.utils.importlib import import_module
-from django.utils.module_loading import module_has_submodule
-
-from mailviews.helpers import should_use_staticfiles
-from mailviews.utils import split_docstring, unimplemented
 
 
 logger = logging.getLogger(__name__)
@@ -67,6 +69,9 @@ class PreviewSite(object):
             url(regex=r'^$',
                 view=self.list_view,
                 name='list'),
+            url(regex=r'^(?P<module>.+)/(?P<preview>.+)/send_test/$',
+                view=self.send_view,
+                name='send_test'),
             url(regex=r'^(?P<module>.+)/(?P<preview>.+)/$',
                 view=self.detail_view,
                 name='detail'),
@@ -102,24 +107,34 @@ class PreviewSite(object):
             raise Http404  # The provided module/preview does not exist in the index.
         return preview.detail_view(request)
 
+    def send_view(self, request, module, preview):
+        """
+        Sends a test email to the requesting user
+        """
+        try:
+            preview = self.__previews[module][preview]
+        except KeyError:
+            raise Http404  # The provided module/preview does not exist in the index.
+        return preview.send_view(request, module, preview)
+
 
 class Preview(object):
-    #: The message view class that will be instantiated to render the preview
-    #: message. This must be defined by subclasses.
+    # : The message view class that will be instantiated to render the preview
+    # : message. This must be defined by subclasses.
     message_view = property(unimplemented)
 
-    #: The subset of headers to show in the preview panel.
+    # : The subset of headers to show in the preview panel.
     headers = ('Subject', 'From', 'To')
 
-    #: The title of this email message to use in the previewer. If not provided,
-    #: this will default to the name of the message view class.
+    # : The title of this email message to use in the previewer. If not provided,
+    # : this will default to the name of the message view class.
     verbose_name = None
 
-    #: A form class that will be used to customize the instantiation behavior
+    # : A form class that will be used to customize the instantiation behavior
     # of the message view class.
     form_class = None
 
-    #: The template that will be rendered for this preview.
+    # : The template that will be rendered for this preview.
     template_name = 'mailviews/previews/detail.html'
 
     def __init__(self, site):
@@ -193,7 +208,7 @@ class Preview(object):
         alternatives = getattr(message, 'alternatives', [])
         try:
             html = next(alternative[0] for alternative in alternatives
-                if alternative[1] == 'text/html')
+                        if alternative[1] == 'text/html')
             context.update({
                 'html': html,
                 'escaped_html': b64encode(html.encode('utf-8')),
@@ -202,6 +217,34 @@ class Preview(object):
             pass
 
         return render(request, self.template_name, context)
+
+    def send_view(self, request):
+        """
+        Sends a test preview email
+        """
+        context = {
+            'preview': self,
+        }
+
+        kwargs = {}
+        if self.form_class:
+            if request.GET:
+                form = self.form_class(data=request.GET)
+            else:
+                form = self.form_class()
+
+            context['form'] = form
+            if not form.is_bound or not form.is_valid():
+                return render(request, 'mailviews/previews/detail.html', context)
+
+            kwargs.update(form.get_message_view_kwargs())
+
+        message_view = self.get_message_view(request, **kwargs)
+        msg = message_view.render_to_message()
+        msg.to = [request.user.email]
+        msg.send()
+
+        return HttpResponse('Email sent')
 
 
 def autodiscover():
@@ -224,5 +267,5 @@ def autodiscover():
                     raise
 
 
-#: The default preview site.
+# : The default preview site.
 site = PreviewSite()
