@@ -5,3 +5,7 @@
 dist/
 docs/_build/
 node_modules/
+
+.pydevproject
+
+.project
