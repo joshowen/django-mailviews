@@ -97,6 +97,11 @@
             <section id="body-html" class="tab-pane active">
                 <iframe src="data:text/html;charset=utf-8;base64,{{ escaped_html }}" frameborder="0" allowtransparency="true"></iframe>
             </section>
+            
+            <section id="body-mobile-html" class="tab-pane active">
+                <iframe src="data:text/html;charset=utf-8;base64,{{ escaped_html }}" frameborder="0" allowtransparency="true"></iframe>
+            </section>
+            
 
             <section id="html-raw" class="tab-pane">
                 <textarea>{{ html|escape }}</textarea>

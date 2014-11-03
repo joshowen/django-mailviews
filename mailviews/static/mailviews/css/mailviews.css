@@ -59,3 +59,9 @@ section:last-child {
 .errorlist li {
     color: #900;
 }
+
+#body-mobile-html iframe {
+    border: 0;
+    height: 560px;
+    width: 320px;
+}
