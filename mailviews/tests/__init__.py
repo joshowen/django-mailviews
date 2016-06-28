@@ -1,9 +1,12 @@
+import django
 from django.conf import settings
 
 if not settings.configured:
     settings.configure(
         DEBUG=True,
         INSTALLED_APPS=(
+            'django.contrib.auth',
+            'django.contrib.contenttypes',
             'mailviews',
             'mailviews.tests',
         ),
@@ -33,14 +36,13 @@ if not settings.configured:
         },
     )
 
+    if hasattr(django, 'setup'):
+        django.setup()
+
 
 from mailviews.tests.tests import *  # NOQA
 
+if __name__ == '__main__':
+    from mailviews.tests.__main__ import __main__
 
-def run():
-    import sys
-    from django.test.utils import get_runner
-
-    runner = get_runner(settings)()
-    failures = runner.run_tests(('mailviews',))
-    sys.exit(failures)
+    __main__()
