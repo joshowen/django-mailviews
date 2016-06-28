@@ -262,18 +262,22 @@ def autodiscover():
     """
     from django.conf import settings
     for application in settings.INSTALLED_APPS:
-        module = import_module(application)
+        try:
+            module = import_module(application)
 
-        if module_has_submodule(module, 'emails'):
-            emails = import_module('%s.emails' % application)
-            try:
-                import_module('%s.emails.previews' % application)
-            except ImportError:
-                # Only raise the exception if this module contains previews and
-                # there was a problem importing them. (An emails module that
-                # does not contain previews is not an error.)
-                if module_has_submodule(emails, 'previews'):
-                    raise
+            if module_has_submodule(module, 'emails'):
+                emails = import_module('%s.emails' % application)
+                try:
+                    import_module('%s.emails.previews' % application)
+                except ImportError:
+                    # Only raise the exception if this module contains previews and
+                    # there was a problem importing them. (An emails module that
+                    # does not contain previews is not an error.)
+                    if module_has_submodule(emails, 'previews'):
+                        raise
+        except:
+            # Hack around Django Applications like axes
+            pass
 
 
 # : The default preview site.
