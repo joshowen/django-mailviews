@@ -11,7 +11,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 
 from mailviews.helpers import should_use_staticfiles
-from mailviews.utils import unimplemented
+from mailviews.utils import unimplemented, split_docstring
 
 try:
     from collections import OrderedDict
