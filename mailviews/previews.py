@@ -25,13 +25,6 @@ except ImportError:
 
 from django.utils.module_loading import module_has_submodule
 
-
-try:
-    from django.conf.urls import patterns, include, url
-except ImportError:
-    # Django <1.4 compat
-    from django.conf.urls.defaults import patterns, include, url
-
 from django.conf.urls import include, url
 
 
