@@ -32,9 +32,9 @@ class EmailMessageView(object):
         """
         Returns the context that will be used for rendering this message.
 
-        :rtype: :class:`django.template.Context`
+        :rtype: :class:`dict`
         """
-        return Context(kwargs)
+        return kwargs
 
     def render_to_message(self, extra_context=None, **kwargs):
         """
