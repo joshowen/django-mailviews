@@ -1,9 +1,7 @@
 import textwrap
 from collections import namedtuple
 
-import django
 from django.template import Context
-from distutils.version import StrictVersion
 
 
 Docstring = namedtuple('Docstring', ('summary', 'body'))
@@ -39,4 +37,4 @@ def unescape(context):
     Useful for rendering plain-text templates without having to wrap the entire
     template in an `{% autoescape off %}` tag.
     """
-    return Context(context, autoescape=False)
+    return Context(context, autoescape=False).flatten()
